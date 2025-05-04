@@ -1,0 +1,4 @@
+.devenv
+.DS_Store
+result*
+build

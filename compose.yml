@@ -1,0 +1,15 @@
+services:
+  nix:
+    image: nixos/nix
+    volumes:
+      - .:/app
+      - nix-store:/nix/store
+    working_dir: /app
+    entrypoint: nix
+    # command: build .#packages.x86_64-linux.v
+    command: run
+    environment:
+      NIX_CONFIG: "experimental-features = nix-command flakes"
+
+volumes:
+  nix-store:

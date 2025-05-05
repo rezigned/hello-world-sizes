@@ -78,10 +78,15 @@
             runtimeInputs = [
               python
               pkgs.file
+              pkgs.time
             ];
             text = ''
               for bin in ${all}/bin/*; do ${pkgs.file}/bin/file "$(readlink -f "$bin")"; done
-              ${python}/bin/python3 ./src/main.py ${all}/bin/ ${system}
+
+              metrics="size mem"
+              for metric in $metrics; do
+                ${python}/bin/python3 ./src/main.py ${all}/bin/ "$metric" ${system}
+              done
             '';
           };
         }

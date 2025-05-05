@@ -51,8 +51,12 @@ jobs:
         run: |
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
           mkdir -p $REPORT_DIR/
-          cp $OUTPUT_DIR/binary_sizes.png "$REPORT_DIR/$TIMESTAMP.png"
-          cp $OUTPUT_DIR/binary_sizes.png $REPORT_DIR/latest.png
+
+          metrics="binary_size memory_usage"
+          for metric in $metrics; do
+            cp $OUTPUT_DIR/$metric.png "$REPORT_DIR/${metric}_$TIMESTAMP.png"
+            cp $OUTPUT_DIR/$metric.png $REPORT_DIR/${metric}_latest.png
+          done
 
           echo "Report saved as $REPORT_DIR/$TIMESTAMP.png"
 
@@ -60,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: all-reports
-          path: ${{ env.OUTPUT_DIR }}
+          path: ${{ env.OUTPUT_DIR }}/*.png
           retention-days: 30
 
       - name: Commit and push reports

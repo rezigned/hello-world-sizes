@@ -3,14 +3,16 @@ name: Generate and Upload Reports
 on:
   push:
     branches: [ main ]
-    paths-ignore:
-      - 'README.md'
-      - '.github/reports/**'
+    paths:
+      - 'src/**'
+      - 'flake.*'
+      - '.github/workflows/**'
   pull_request:
     branches: [ main ]
-    paths-ignore:
-      - 'README.md'
-      - '.github/reports/**'
+    paths:
+      - 'src/**'
+      - 'flake.*'
+      - '.github/workflows/**'
 
   workflow_dispatch:
 

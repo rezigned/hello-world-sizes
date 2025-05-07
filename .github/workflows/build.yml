@@ -2,7 +2,7 @@ name: Generate and Upload Reports
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, add-arm64-runner ]
     paths:
       - 'src/**'
       - 'flake.*'
@@ -19,14 +19,22 @@ on:
 jobs:
   generate-reports:
     name: Generate reports
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - name: ubuntu-24.04-arm
+            arch: arm64
+          # - name: ubuntu-latest
+          #   arch: amd64
+
+    runs-on: ${{ matrix.os.name }}
 
     # Skip this job if the commit was made by the GitHub Actions bot (prevents infinite CI loops)
     if: github.actor != 'github-actions[bot]'
 
     env:
       OUTPUT_DIR: build/reports
-      REPORT_DIR: .github/reports
+      REPORT_DIR: .github/reports/${{ matrix.os.arch }}
 
     steps:
       - name: Checkout code
@@ -45,7 +53,7 @@ jobs:
           name: ${{ github.repository_owner }}-hello-world-sizes
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
 
-      - name: Run Nix flake to generate reports
+      - name: Run Nix flake to generate reports | ${{ matrix.os.arch }}
         run: nix run
 
       # Copy report to timestamped and latest locations

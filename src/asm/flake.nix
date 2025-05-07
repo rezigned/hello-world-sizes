@@ -37,8 +37,15 @@
             buildPhase = ''
               case "${system}" in
                 # Build for Linux x86_64 and ARM64
-                x86_64-linux | aarch64-linux)
+                x86_64-linux)
                   nasm -f elf64 main-${system}.asm -o hello_asm.o
+
+                  # Link the object file
+                  ld -o hello hello_asm.o --entry=_start
+                  ;;
+
+                aarch64-linux)
+                  as main-${system}.asm -o hello_asm.o
 
                   # Link the object file
                   ld -o hello hello_asm.o --entry=_start

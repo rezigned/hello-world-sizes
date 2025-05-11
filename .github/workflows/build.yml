@@ -2,7 +2,7 @@ name: Generate and Upload Reports
 
 on:
   push:
-    branches: [ main, add-arm64-runner ]
+    branches: [ main ]
     paths:
       - 'src/**'
       - 'flake.*'
@@ -24,8 +24,8 @@ jobs:
         os:
           - name: ubuntu-24.04-arm
             arch: arm64
-          # - name: ubuntu-latest
-          #   arch: amd64
+          - name: ubuntu-latest
+            arch: amd64
 
     runs-on: ${{ matrix.os.name }}
 

@@ -11,3 +11,6 @@ expected="Hello, World!"
 # 2. Check if it's statically linked
 output=$(file "$file")
 echo "$output" | grep -qE 'statically linked|static-pie linked' || (echo "Binary $file is not statically linked\n\n$output" && exit 1)
+
+# Remove unnecessary symbols
+strip "$file"

@@ -73,8 +73,8 @@ jobs:
       - name: Upload all reports as a single artifact
         uses: actions/upload-artifact@v4
         with:
-          name: all-reports
-          path: ${{ env.OUTPUT_DIR }}/*.png
+          name: all-reports-${{ matrix.os.arch }}
+          path: ${{ env.REPORT_DIR }}/*.png
           retention-days: 30
 
       - name: Commit and push reports

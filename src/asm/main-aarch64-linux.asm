@@ -1,4 +1,4 @@
-; hello_linux.asm - Hello World in aarch64 assembly for Linux
+// hello_linux.asm - Hello World in aarch64 assembly for Linux
 .section .data
 hello:
     .asciz "Hello, World!\n"

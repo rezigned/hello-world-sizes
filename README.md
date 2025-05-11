@@ -1,13 +1,25 @@
 # Hello World Sizes
 
-📦 Compare the static binary size of a **"Hello, World!"** program across programming languages.
+📦 Compare the static binary size and memory usage of **"Hello, World!"** programs across various languages.
 
 > [!NOTE]
-> This project automatically builds and records binary sizes of "Hello, World!" implementations for various languages like C, C++, Rust, Go, Zig, Nim, V, and more — all **statically linked**!
+> This project automatically builds and records binary sizes/memory usage of "Hello, World!" implementations for various languages like C, C++, Rust, Go, Zig, Nim, V, and more — all **statically linked**!
 
-![Latest size comparison](.github/reports/binary_size_latest.png)
+#### Binary sizes
+<table>
+  <tr>
+    <td><img src=".github/reports/amd64/binary_size_latest.png" title="Binary sizes (amd64)" /></td>
+    <td><img src=".github/reports/arm64/binary_size_latest.png" title="Binary sizes (arm64)" /></td>
+  </tr>
+</table>
 
-![Latest size comparison](.github/reports/memory_usage_latest.png)
+#### Memory usage
+<table>
+  <tr>
+    <td><img src=".github/reports/amd64/memory_usage_latest.png" title="Memory usage (amd64)" /></td>
+    <td><img src=".github/reports/arm64/memory_usage_latest.png" title="Memory usage (arm64)" /></td>
+  </tr>
+</table>
 
 ---
 

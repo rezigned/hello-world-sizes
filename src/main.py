@@ -165,7 +165,7 @@ class BinaryAnalyzer:
 
         fig.update_layout(
             title=dict(
-                text=self.metric.title(),
+                text=f"{self.metric.title()}<br><span style='font-size:18px; color:#6b7280'>({self.system})</span>",
                 x=0.5,
                 font=dict(size=24, color='#1f2937')
             ),

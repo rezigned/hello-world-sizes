@@ -18,47 +18,48 @@
       packages = eachSystem (
         system:
         let
+          arch = builtins.elemAt (builtins.split "-" system) 0;
           pkgs = import nixpkgs { inherit system; };
           pkg =
-            libc:
-            let
-              toolchain =
-                {
-                  musl = {
-                    gcc = pkgs.pkgsCross.musl64.gcc;
-                    inputs = [ ];
+            libc: attrs:
+            pkgs.stdenv.mkDerivation (
+              rec {
+                pname = "hello-${name}-${libc}";
+                version = "1.0";
+                src =
+                  with pkgs.lib.fileset;
+                  toSource {
+                    root = ../.;
+                    fileset = union ./. ../check.sh;
                   };
-                  glibc = {
-                    gcc = pkgs.gcc;
-                    inputs = [ pkgs.glibc.static ];
-                  };
-                }
-                ."${libc}" or (throw "Unsupported libc: ${libc}");
-            in
-            pkgs.stdenv.mkDerivation rec {
-              pname = "hello-${name}-${libc}";
-              version = "1.0";
-              src =
-                with pkgs.lib.fileset;
-                toSource {
-                  root = ../.;
-                  fileset = union ./. ../check.sh;
-                };
-              sourceRoot = "${src.name}/${name}";
-              nativeBuildInputs = [
-                toolchain.gcc
-              ] ++ toolchain.inputs;
-              doCheck = true;
-              buildPhase = ''
-                ${toolchain.gcc}/bin/g++ -Os -static -s main.cpp -o hello
-              '';
-              checkPhase = "../check.sh";
-              installPhase = "mkdir -p $out/bin; mv hello $out/bin/hello-${name}-${libc}";
-            };
+                sourceRoot = "${src.name}/${name}";
+                nativeBuildInputs = [ ];
+                doCheck = true;
+                buildPhase = "echo 'Building with musl'; exit 1";
+                checkPhase = "../check.sh";
+                installPhase = "mkdir -p $out/bin; mv hello $out/bin/hello-${name}-${libc}";
+              }
+              // attrs
+            );
         in
         {
-          "${name}-musl" = pkg "musl";
-          "${name}-glibc" = pkg "glibc";
+          "${name}-musl" = pkg "musl" {
+            nativeBuildInputs = [ pkgs.zig ];
+            buildPhase = ''
+              export ZIG_GLOBAL_CACHE_DIR="$(mktemp -d)"
+
+              zig c++ -target ${arch}-linux-musl -Os -static -s main.cpp -o hello
+            '';
+          };
+          "${name}-glibc" = pkg "glibc" {
+            nativeBuildInputs = [
+              pkgs.gcc
+              pkgs.glibc.static
+            ];
+            buildPhase = ''
+              ${pkgs.gcc}/bin/g++ -Os -static -s main.cpp -o hello
+            '';
+          };
         }
       );
     };

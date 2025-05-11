@@ -6,7 +6,7 @@ services:
       - nix-store:/nix/store
     working_dir: /app
     entrypoint: nix
-    # command: build .#packages.x86_64-linux.v
+    # command: build .#packages.aarch64-linux.c-glibc
     command: run
     environment:
       NIX_CONFIG: "experimental-features = nix-command flakes"

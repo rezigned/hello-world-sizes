@@ -1,4 +1,4 @@
-name: Generate and Upload Reports
+name: Build Reports
 
 on:
   push:
@@ -14,11 +14,15 @@ on:
       - 'flake.*'
       - '.github/workflows/**'
 
-  workflow_dispatch:
+env:
+  # Aritifact name prefix e.g. all-reports-amd64, etc.
+  ARTIFACT_PREFIX: all-reports
+  OUTPUT_DIR: build/reports
+  REPORT_DIR: .github/reports
 
 jobs:
-  generate-reports:
-    name: Generate reports
+  build-reports:
+    name: Build reports
     strategy:
       matrix:
         os:
@@ -31,10 +35,6 @@ jobs:
 
     # Skip this job if the commit was made by the GitHub Actions bot (prevents infinite CI loops)
     if: github.actor != 'github-actions[bot]'
-
-    env:
-      OUTPUT_DIR: build/reports
-      REPORT_DIR: .github/reports/${{ matrix.os.arch }}
 
     steps:
       - name: Checkout code
@@ -56,34 +56,10 @@ jobs:
       - name: Run Nix flake to generate reports | ${{ matrix.os.arch }}
         run: nix run
 
-      # Copy report to timestamped and latest locations
-      - name: Save report with timestamp
-        run: |
-          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
-          mkdir -p $REPORT_DIR/
-
-          metrics="binary_size memory_usage"
-          for metric in $metrics; do
-            cp $OUTPUT_DIR/$metric.png "$REPORT_DIR/${metric}_$TIMESTAMP.png"
-            cp $OUTPUT_DIR/$metric.png $REPORT_DIR/${metric}_latest.png
-          done
-
-          echo "Report saved as $REPORT_DIR/$TIMESTAMP.png"
-
       - name: Upload all reports as a single artifact
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
-          name: all-reports-${{ matrix.os.arch }}
-          path: ${{ env.REPORT_DIR }}/*.png
+          name: ${{ env.ARTIFACT_PREFIX }}-${{ matrix.os.arch }}
+          path: ${{ env.OUTPUT_DIR }}/*.png
           retention-days: 30
-
-      - name: Commit and push reports
-        if: github.ref == 'refs/heads/main' && github.actor != 'github-actions[bot]'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add $REPORT_DIR/
-          git commit -m "ci: update latest report artifact [auto]" || echo "No changes to commit"
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

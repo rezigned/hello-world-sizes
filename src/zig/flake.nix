@@ -24,7 +24,7 @@
             pname = "hello-zig";
             version = "0.13";
             src = ./.;
-            nativeBuildInputs = [ pkgs.zig_0_13 ];
+            nativeBuildInputs = [ pkgs.zig ];
             buildPhase = ''
               zig build-exe \
                 --global-cache-dir $(mktemp -d) \
@@ -33,7 +33,11 @@
                 -femit-bin=hello \
                 main.zig
             '';
-            installPhase = "mkdir -p $out/bin; mv hello $out/bin/hello-zig";
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-zig
+              zig version > $out/bin/hello-zig.version
+            '';
           };
         }
       );

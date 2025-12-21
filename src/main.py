@@ -116,6 +116,9 @@ class BinaryAnalyzer:
         results = {}
 
         for bin_name in os.listdir(self.bin_dir):
+            if bin_name.endswith(".version"):
+                continue
+
             bin_path = self.bin_dir / bin_name
 
             # Normalize the file name
@@ -124,16 +127,56 @@ class BinaryAnalyzer:
             # "hello-c-musl" => "c (musl)"
             _, lang, variant, *rest = (bin_name + '-').split('-')
 
-            lang = NAMES.get(lang, lang)
+            lang = NAMES.get(lang.lower(), lang)
             name = f"{lang} ({variant})" if variant else lang
 
             print(f"Analyzing {name}...")
 
             if bin_path.exists():
                 metric_value = self.metric.measure(bin_path)
+
+                # Try to read version info
+                version = ""
+                version_path = bin_path.parent / (bin_name + ".version")
+                if version_path.exists():
+                    try:
+                        # Take the first line and trim it
+                        raw_version = version_path.read_text().splitlines()[0].strip()
+                        # Heuristics to shorten common version strings
+                        # e.g. "go version go1.24.0 linux/amd64" -> "1.24.0"
+                        if raw_version.startswith("go version"):
+                            version = raw_version.split(" ")[2].replace("go", "")
+                        # e.g. "rustc 1.77.2 (25ef9e3d8 2024-04-09)" -> "1.77.2"
+                        elif raw_version.startswith("rustc"):
+                             version = raw_version.split(" ")[1]
+                        # e.g. "gcc (GCC) 13.2.0" -> "13.2.0"
+                        elif " (GCC) " in raw_version:
+                             version = raw_version.split(" (GCC) ")[1].split(" ")[0]
+                        # e.g. "Free Software Foundation ... nasm version 2.16.01" -> "2.16.01"
+                        elif "NASM version" in raw_version:
+                             version = raw_version.split("NASM version")[1].strip().split(" ")[0]
+                        # e.g. "Nim Compiler Version 2.0.0" -> "2.0.0"
+                        elif "Nim Compiler Version" in raw_version:
+                             version = raw_version.split("Version")[1].strip().split(" ")[0]
+                        # e.g. "V 0.4.5" -> "0.4.5"
+                        elif raw_version.startswith("V ") and any(c.isdigit() for c in raw_version):
+                             version = raw_version.split(" ")[1]
+                        # e.g. "Crystal 1.12.1"
+                        elif raw_version.startswith("Crystal "):
+                             version = raw_version.split(" ")[1]
+                        # e.g. "odin version dev-2024-11" -> "dev-2024-11"
+                        elif raw_version.startswith("odin version"):
+                             version = raw_version.replace("odin version", "").strip().split(" ")[0]
+                        else:
+                             # Fallback: take first 2 words or 20 chars
+                             version = " ".join(raw_version.split()[:2])[:20]
+                    except Exception as e:
+                        print(f"Failed to read version for {bin_name}: {e}")
+
                 results[name] = {
                     "value": metric_value,
-                    "timestamp": datetime.now().isoformat(sep=" ", timespec="seconds")
+                    "timestamp": datetime.now().isoformat(sep=" ", timespec="seconds"),
+                    "version": version
                 }
 
         return results
@@ -146,8 +189,24 @@ class BinaryAnalyzer:
 
         def format_lang(lang: str) -> str:
             """Format language name for display."""
-            name, variant, *rest = (lang + ' ').split(' ')
-            return f"{name}<br><span style='font-size:10px; color:#6b7280'>{variant}</span>"
+            # Parsing name/variant
+            if " (" in lang:
+                name = lang.split(" (")[0]
+                variant = lang.split(" (")[1].replace(")", "")
+            else:
+                name = lang
+                variant = ""
+
+            ver = results[lang].get("version", "")
+            label = f"<b>{name}</b>"
+
+            # Version goes second
+            if ver:
+                label += f"<br><span style='font-size:10px; color:#555'>{ver}</span>"
+            # Variant (libc) goes last
+            if variant:
+                label += f"<br><span style='font-size:10px; color:#555'>({variant})</span>"
+            return label
 
         df = pd.DataFrame.from_dict(results, orient='index')
         df.sort_values('value', inplace=True)
@@ -173,7 +232,7 @@ class BinaryAnalyzer:
             paper_bgcolor='white',
             xaxis=dict(
                 title='Programming Language',
-                tickfont_size=14,
+                tickfont_size=12,
                 title_font_size=16,
                 showgrid=False,
                 tickmode='array',
@@ -188,7 +247,7 @@ class BinaryAnalyzer:
                 showgrid=True,
             ),
             showlegend=False,
-            margin=dict(t=100, l=70, r=40, b=120),
+            margin=dict(t=100, l=70, r=40, b=180),
             height=600,
         )
 
@@ -207,12 +266,12 @@ class BinaryAnalyzer:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         fig.add_annotation(
             x=0.5,
-            y=-0.25,
+            y=-0.35, # Moved further down to avoid overlap
             xref="paper",
             yref="paper",
             text=f"System: {self.system} | Metric: {self.metric.name()} | Generated: {timestamp}",
             showarrow=False,
-            font=dict(size=12, color="#6b7280")
+            font=dict(size=11, color="#6b7280")
         )
 
         # Save visual outputs
@@ -240,7 +299,8 @@ class BinaryAnalyzer:
 
         print(f"\n{self.metric.y_axis_label()}:")
         for lang, data in sorted(results.items(), key=lambda x: x[1]['value']):
-            print(f"{lang}: {data['value']:.1f} KB")
+            ver_str = f" ({data.get('version', '')})" if data.get('version') else ""
+            print(f"{lang}{ver_str}: {data['value']:.1f} KB")
 
 def main():
     if len(sys.argv) < 4:

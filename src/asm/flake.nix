@@ -66,7 +66,16 @@
               esac
             '';
             checkPhase = "../check.sh";
-            installPhase = ''mkdir -p $out/bin; mv hello $out/bin/hello-${name}'';
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-${name}
+
+              if command -v nasm > /dev/null; then
+                nasm --version > $out/bin/hello-${name}.version
+              elif command -v as > /dev/null; then
+                as --version | head -n1 > $out/bin/hello-${name}.version
+              fi
+            '';
           };
         }
       );

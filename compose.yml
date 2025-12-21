@@ -1,6 +1,7 @@
 services:
   nix:
     image: nixos/nix
+    platform: linux/amd64
     volumes:
       - .:/app
       - nix-store:/nix/store
@@ -9,7 +10,26 @@ services:
     # command: build .#packages.aarch64-linux.c-glibc
     command: run
     environment:
-      NIX_CONFIG: "experimental-features = nix-command flakes"
+      # Disable syscall filtering to allow running Nix commands
+      # on Apple Silicon using `qemu-x86_64`.
+      # See https://github.com/DeterminateSystems/nix-installer/issues/324
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+        filter-syscalls = false
+
+  nix-arm64:
+    image: nixos/nix
+    platform: linux/arm64
+    volumes:
+      - .:/app
+      - nix-store-arm64:/nix/store
+    working_dir: /app
+    entrypoint: nix
+    command: run
+    environment:
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
 
 volumes:
   nix-store:
+  nix-store-arm64:

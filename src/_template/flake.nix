@@ -50,7 +50,11 @@
             '';
 
             # Install the binary (./bin/hello-{lang})
-            installPhase = ''mkdir -p $out/bin; mv hello $out/bin/hello-${name}'';
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-${name}
+              # ${name} --version > $out/bin/hello-${name}.version
+            '';
           };
         }
       );

@@ -44,7 +44,11 @@
               ${pkgs.vlang}/bin/v -prod -cflags "-static" -o hello main.v
             '';
             checkPhase = "../check.sh";
-            installPhase = "mkdir -p $out/bin; mv hello $out/bin/hello-${name}";
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-${name}
+              v version > $out/bin/hello-${name}.version
+            '';
           };
         }
       );

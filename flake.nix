@@ -56,6 +56,7 @@
           python = pkgs.python3.withPackages (
             ps: with ps; [
               plotly
+              kaleido
               numpy
               pandas
             ]

@@ -50,6 +50,11 @@
 
               zig c++ -target ${arch}-linux-musl -Os -static -s main.cpp -o hello
             '';
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-${name}-musl
+              zig version > $out/bin/hello-${name}-musl.version
+            '';
           };
           "${name}-glibc" = pkg "glibc" {
             nativeBuildInputs = [
@@ -58,6 +63,11 @@
             ];
             buildPhase = ''
               ${pkgs.gcc}/bin/g++ -Os -static -s main.cpp -o hello
+            '';
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-${name}-glibc
+              ${pkgs.gcc}/bin/g++ --version | head -n1 > $out/bin/hello-${name}-glibc.version
             '';
           };
         }

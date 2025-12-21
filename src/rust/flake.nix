@@ -51,7 +51,11 @@
               rustc $RUST_FLAGS main.rs --target ${target} -o hello
             '';
             checkPhase = "../check.sh";
-            installPhase = "mkdir -p $out/bin; mv hello $out/bin/hello-${name}";
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-${name}
+              rustc --version > $out/bin/hello-${name}.version
+            '';
           };
         }
       );

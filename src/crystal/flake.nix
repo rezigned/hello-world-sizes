@@ -31,7 +31,11 @@
             buildPhase = ''
               crystal build main.cr -o hello --static
             '';
-            installPhase = "mkdir -p $out/bin; mv hello $out/bin/hello-cr";
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-cr
+              crystal --version > $out/bin/hello-cr.version
+            '';
           };
         }
       );

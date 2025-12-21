@@ -33,7 +33,7 @@
                 fileset = union ./. ../check.sh;
               };
             sourceRoot = "${src.name}/${name}";
-            nativeBuildInputs = [ pkgs.go_1_24 ];
+            nativeBuildInputs = [ pkgs.go ];
             doCheck = true;
             buildPhase = ''
               export CGO_ENABLED=0
@@ -42,7 +42,11 @@
               go build -ldflags="-s -w" -o hello main.go
             '';
             checkPhase = "../check.sh";
-            installPhase = "mkdir -p $out/bin; mv hello $out/bin/hello-${name}";
+            installPhase = ''
+              mkdir -p $out/bin
+              mv hello $out/bin/hello-${name}
+              go version > $out/bin/hello-${name}.version
+            '';
           };
         }
       );

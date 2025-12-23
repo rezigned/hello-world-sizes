@@ -288,9 +288,14 @@ class BinaryAnalyzer:
             print("Saving HTML version only...")
             fig.write_html(html_path)
 
-        # Save data with colors for reference
-        df['color'] = colors
-        df.to_json(json_path)
+        # Save data as a list of records
+        df.reset_index(inplace=True)
+        df.rename(columns={'index': 'language'}, inplace=True)
+        records = df.to_dict(orient='records')
+        
+        with open(json_path, 'w') as f:
+            import json
+            json.dump(records, f, indent=4)
 
     def print_summary(self, results: dict):
         if not results:

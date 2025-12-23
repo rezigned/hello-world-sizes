@@ -65,5 +65,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_PREFIX }}-${{ matrix.os.arch }}
-          path: ${{ env.OUTPUT_DIR }}/*.png
+          path: ${{ env.OUTPUT_DIR }}/*.{png,json}
           retention-days: 30

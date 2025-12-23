@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World Sizes Reports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="header-content">
+            <div class="brand-section">
+                <div class="brand">
+                    <h1>Hello World Sizes</h1>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="icon icon-tabler icons-tabler-outline icon-tabler-package">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                        <path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5" />
+                        <path d="M12 12l8 -4.5" />
+                        <path d="M12 12l0 9" />
+                        <path d="M12 12l-8 -4.5" />
+                        <path d="M16 5.25l-8 4.5" />
+                    </svg>
+                </div>
+                <p class="description">Compare the static binary size and memory usage of "Hello, World!" programs</p>
+            </div>
+
+            <div class="socials">
+                <a href="https://github.com/rezigned/hello-world-sizes" target="_blank">
+                    <img src="https://img.shields.io/github/stars/rezigned/hello-world-sizes?style=social"
+                        alt="GitHub stars">
+                </a>
+                <a class="github-user" href="https://github.com/rezigned" target="_blank"><img alt="Static Badge"
+                        src="https://img.shields.io/badge/-grey?style=social&amp;label=%40rezigned&amp;link=https%3A%2F%2Fgithub.com%2Frezigned"></a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="controls">
+            <div class="select-wrapper">
+                <select id="timestamp-select"></select>
+            </div>
+        </div>
+        <div class="charts-container">
+            <div class="chart-card">
+                <h2>Binary Size</h2>
+                <div class="canvas-wrapper">
+                    <canvas id="binary-size-chart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2>Memory Usage</h2>
+                <div class="canvas-wrapper">
+                    <canvas id="memory-usage-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+
+</html>

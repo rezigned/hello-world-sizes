@@ -29,32 +29,15 @@ jobs:
           workflow_conclusion: success
           branch: main
 
-      - name: Save report with timestamp
-        run: |
-          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
-
-          archs="amd64 arm64"
-          for arch in $archs; do
-            ARTIFACT_DIR="${{ env.ARTIFACT_PREFIX }}-$arch"
-            REPORT_DIR=${{ env.REPORT_DIR }}/$arch
-
-            mkdir -p $REPORT_DIR/
-
-            metrics="binary_size memory_usage"
-            for metric in $metrics; do
-              cp $ARTIFACT_DIR/$metric.png "$REPORT_DIR/${metric}_$TIMESTAMP.png"
-              cp $ARTIFACT_DIR/$metric.png "$REPORT_DIR/${metric}_latest.png"
-
-              echo "Report saved as $REPORT_DIR/${metric}_latest.png"
-            done
-          done
+      - name: Process reports
+        run: ./.github/process-reports.sh
 
       - name: Commit and push reports
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ${{ env.REPORT_DIR }}/
-          git commit -m "ci: update latest report artifact [auto]" || echo "No changes to commit"
+          git add ${{ env.REPORT_DIR }}/ docs/
+          git commit -m "ci: update reports and data [auto]" || echo "No changes to commit"
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,13 +1,26 @@
 services:
   nix:
     image: nixos/nix
-    platform: linux/amd64
+    platform: linux/arm64
     volumes:
       - .:/app
       - nix-store:/nix/store
     working_dir: /app
     entrypoint: nix
     # command: build .#packages.aarch64-linux.c-glibc
+    command: run
+    environment:
+      NIX_CONFIG: |
+        experimental-features = nix-command flakes
+
+  nix-amd64:
+    image: nixos/nix
+    platform: linux/amd64
+    volumes:
+      - .:/app
+      - nix-store-amd64:/nix/store
+    working_dir: /app
+    entrypoint: nix
     command: run
     environment:
       # Disable syscall filtering to allow running Nix commands
@@ -17,19 +30,6 @@ services:
         experimental-features = nix-command flakes
         filter-syscalls = false
 
-  nix-arm64:
-    image: nixos/nix
-    platform: linux/arm64
-    volumes:
-      - .:/app
-      - nix-store-arm64:/nix/store
-    working_dir: /app
-    entrypoint: nix
-    command: run
-    environment:
-      NIX_CONFIG: |
-        experimental-features = nix-command flakes
-
 volumes:
   nix-store:
-  nix-store-arm64:
+  nix-store-amd64:

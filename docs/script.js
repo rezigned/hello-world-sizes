@@ -1,14 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
-    Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
-    Chart.defaults.color = '#4b5563';
-
     const timestampSelect = document.getElementById('timestamp-select');
     const binarySizeChartCanvas = document.getElementById('binary-size-chart');
     const memoryUsageChartCanvas = document.getElementById('memory-usage-chart');
 
     let binarySizeChart;
     let memoryUsageChart;
-    let reportsData = {};
+    let availableTimestamps = [];
+    let reportsCache = {};
 
     async function loadReports() {
         try {
@@ -17,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Could not load reports.json');
                 return;
             }
-            reportsData = await response.json();
+            availableTimestamps = await response.json();
             populateTimestampSelector();
             renderCharts();
         } catch (error) {
@@ -26,16 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function populateTimestampSelector() {
-        const timestamps = Object.keys(reportsData).filter(key => key !== 'latest').sort().reverse();
-
         const latestOption = document.createElement('option');
         latestOption.value = 'latest';
         latestOption.textContent = 'Latest';
         timestampSelect.appendChild(latestOption);
 
-        timestamps.forEach(ts => {
+        availableTimestamps.forEach(ts => {
             const option = document.createElement('option');
-            console.log({ ts })
             option.value = ts;
             option.textContent = new Date(ts).toLocaleString();
             timestampSelect.appendChild(option);
@@ -44,26 +39,38 @@ document.addEventListener('DOMContentLoaded', () => {
         timestampSelect.addEventListener('change', renderCharts);
     }
 
-    function renderCharts() {
+    async function renderCharts() {
         const selectedTimestamp = timestampSelect.value;
-        const report = reportsData[selectedTimestamp];
 
+        let report = reportsCache[selectedTimestamp];
         if (!report) {
-            console.error(`No data for timestamp: ${selectedTimestamp}`);
-            return;
+            try {
+                const response = await fetch(`reports/${selectedTimestamp}.json`);
+                if (!response.ok) {
+                    throw new Error(`Could not load report: ${selectedTimestamp}`);
+                }
+                report = await response.json();
+                reportsCache[selectedTimestamp] = report;
+            } catch (error) {
+                console.error(error);
+                return;
+            }
         }
 
-        binarySizeChart = renderChart(binarySizeChart, binarySizeChartCanvas, 'binary_size', report.binary_size);
-        memoryUsageChart = renderChart(memoryUsageChart, memoryUsageChartCanvas, 'memory_usage', report.memory_usage);
+        renderChart(binarySizeChartCanvas, 'binary_size', report.binary_size);
+        renderChart(memoryUsageChartCanvas, 'memory_usage', report.memory_usage);
     }
 
-    function renderChart(chart, canvas, metric, data) {
-        if (!data) {
-            console.error(`No data for metric: ${metric}`);
-            return;
+    function renderChart(canvas, metric, data) {
+        if (!data) return;
+
+        // Initialize ECharts instance
+        let chart = echarts.getInstanceByDom(canvas);
+        if (!chart) {
+            chart = echarts.init(canvas);
         }
 
-        // Calculate minimal value for each language to sort by smallest size first
+        // Process data
         const langValues = {};
         data.forEach(d => {
             if (langValues[d.language] === undefined || d.value < langValues[d.language]) {
@@ -72,124 +79,168 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const languages = [...new Set(data.map(d => d.language))].sort((a, b) => {
-            // Sort by value (ascending), then alphabetically if equal
             const valA = langValues[a];
             const valB = langValues[b];
             if (valA !== valB) return valA - valB;
             return a.localeCompare(b);
         });
+
         const amd64Data = [];
         const arm64Data = [];
-
-        const labels = languages.map(lang => {
-            const entry = data.find(d => d.language === lang);
-            const version = entry ? entry.version : '';
-            return [lang, version];
-        });
 
         languages.forEach(lang => {
             const amd64Entry = data.find(d => d.language === lang && d.arch === 'amd64');
             const arm64Entry = data.find(d => d.language === lang && d.arch === 'arm64');
-            amd64Data.push(amd64Entry ? amd64Entry.value : null);
-            arm64Data.push(arm64Entry ? arm64Entry.value : null);
+
+            amd64Data.push({
+                value: amd64Entry ? amd64Entry.value : null,
+                version: amd64Entry ? amd64Entry.version : '',
+                lang: lang
+            });
+            arm64Data.push({
+                value: arm64Entry ? arm64Entry.value : null,
+                version: arm64Entry ? arm64Entry.version : '',
+                lang: lang
+            });
         });
 
-        const datasets = [
-            {
-                label: 'amd64',
-                data: amd64Data,
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
+        const yAxisName = metric === 'binary_size' ? 'Binary Size (KB)' : 'Resident Set Size (KB)';
+
+        const option = {
+            animation: false,
+            textStyle: { fontFamily: 'Inter, sans-serif' },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: { type: 'shadow' },
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 10,
+                textStyle: { color: '#fff' },
+                formatter: function (params) {
+                    let tooltip = `<strong>${params[0].name}</strong><br/>`;
+                    params.forEach(param => {
+                        if (param.value !== null && param.value !== undefined) {
+                            tooltip += `${param.marker} ${param.seriesName}: ${param.value.toFixed(1)} KB<br/>`;
+                            if (param.data.version) {
+                                tooltip += `<span style="opacity:0.7; font-size:12px; margin-left: 14px">Version: ${param.data.version}</span><br/>`;
+                            }
+                        }
+                    });
+                    return tooltip;
+                }
             },
-            {
-                label: 'arm64',
-                data: arm64Data,
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }
-        ];
-
-        const yAxisLabel = metric === 'binary_size' ? 'Binary Size (KB)' : 'Resident Set Size (KB)';
-
-        if (chart) {
-            chart.data.labels = labels;
-            chart.data.datasets = datasets;
-            chart.options.scales.y.title.text = yAxisLabel;
-            chart.update();
-        } else {
-            const ctx = canvas.getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: datasets
+            legend: {
+                top: 0,
+                right: 0,
+                itemGap: 20
+            },
+            grid: {
+                left: '2%',
+                right: '4%',
+                bottom: '5%',
+                top: '15%',
+                containLabel: true
+            },
+            dataZoom: [
+                {
+                    type: 'slider',
+                    show: false,
+                    yAxisIndex: 0,
+                    right: 10,
+                    width: 20,
+                    start: 0,
+                    end: 100,
+                    borderColor: 'transparent',
+                    handleSize: '80%',
+                    handleStyle: {
+                        color: '#fff',
+                        shadowBlur: 3,
+                        shadowColor: 'rgba(0, 0, 0, 0.6)'
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            align: 'end',
-                            labels: {
-                                boxWidth: 12,
-                                padding: 20
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            padding: 10,
-                            callbacks: {
-                                title: function (context) {
-                                    // Use dataIndex to get the original language string
-                                    return languages[context[0].dataIndex];
-                                },
-                                label: function (context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += context.parsed.y.toFixed(1) + ' KB';
-                                    }
-                                    return label;
-                                },
-                                afterLabel: function (context) {
-                                    const lang = languages[context.dataIndex];
-                                    const entry = data.find(d => d.language === lang && d.arch === context.dataset.label);
-                                    if (entry) {
-                                        return 'Version: ' + entry.version;
-                                    }
-                                    return '';
-                                }
-                            }
-                        }
+                {
+                    type: 'inside',
+                    yAxisIndex: 0,
+                    zoomOnMouseWheel: true,
+                    moveOnMouseWheel: true
+                }
+            ],
+            xAxis: {
+                type: 'category',
+                data: languages,
+                axisLabel: {
+                    rotate: 45,
+                    interval: 0,
+                    margin: 10,
+                    color: '#4b5563',
+                    formatter: function (value) {
+                        const entry = data.find(d => d.language === value);
+                        const version = entry ? entry.version : '';
+                        return version ? `${value}\n${version}` : value;
                     },
-                    scales: {
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                borderDash: [2, 4],
-                                color: '#e5e7eb'
-                            },
-                            title: {
-                                display: true,
-                                text: yAxisLabel
-                            }
-                        }
+                    lineHeight: 14
+                },
+                axisTick: { alignWithLabel: true }
+            },
+            yAxis: {
+                type: 'value',
+                name: yAxisName,
+                nameLocation: 'end',
+                nameTextStyle: {
+                    padding: [0, 0, 10, 0],
+                    color: '#4b5563',
+                    fontWeight: 'bold'
+                },
+                splitLine: {
+                    lineStyle: {
+                        type: 'dashed',
+                        color: '#e5e7eb'
+                    }
+                },
+                axisLabel: {
+                    color: '#4b5563',
+                    formatter: '{value} KB'
+                }
+            },
+            series: [
+                {
+                    name: 'amd64',
+                    type: 'bar',
+                    data: amd64Data,
+                    itemStyle: { color: 'rgba(255, 99, 132, 0.6)', borderColor: 'rgba(255, 99, 132, 1)', borderWidth: 1 },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: p => p.value ? p.value.toFixed(0) : '',
+                        color: '#4b5563',
+                        fontSize: 10
+                    }
+                },
+                {
+                    name: 'arm64',
+                    type: 'bar',
+                    data: arm64Data,
+                    itemStyle: { color: 'rgba(54, 162, 235, 0.6)', borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1 },
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: p => p.value ? p.value.toFixed(0) : '',
+                        color: '#4b5563',
+                        fontSize: 10
                     }
                 }
-            });
-        }
-        return chart;
+            ]
+        };
+
+        chart.setOption(option);
+
+        // Handle window resize
+        window.removeEventListener('resize', chart.__resizeHandler);
+        window.addEventListener('resize', chart.__resizeHandler);
+        chart.__resizeHandler = () => chart.resize();
     }
 
-    loadReports();
+    // Wait for fonts to be ready before rendering to avoid font snapping
+    document.fonts.ready.then(() => {
+        loadReports();
+    });
 });

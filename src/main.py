@@ -111,6 +111,23 @@ class BinaryAnalyzer:
         # Define a color palette for programming languages
         self.color_palette = px.colors.qualitative.Plotly
 
+        # Use flake.lock commit time as the default timestamp for reproducibility
+        self.timestamp = self._get_flake_lock_time()
+
+    def _get_flake_lock_time(self) -> str:
+        """Get the last commit time of flake.lock in UTC (ISO format)."""
+        try:
+            # TZ=UTC and %ad ensures we get UTC if supported by the shell/git config
+            cmd = ["git", "log", "-1", "--date=format-local:%Y-%m-%dT%H:%M:%SZ", "--format=%ad", "flake.lock"]
+            env = os.environ.copy()
+            env["TZ"] = "UTC"
+            result = subprocess.run(cmd, capture_output=True, text=True, env=env)
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+        except Exception:
+            pass
+        return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
     def analyze_binaries(self) -> dict:
         """Analyze programs using the selected metric and return results with timestamps."""
         results = {}
@@ -175,7 +192,6 @@ class BinaryAnalyzer:
 
                 results[name] = {
                     "value": metric_value,
-                    "timestamp": datetime.now().isoformat(sep=" ", timespec="seconds"),
                     "version": version
                 }
 
@@ -263,13 +279,12 @@ class BinaryAnalyzer:
             )
 
         # Add metadata about system and date
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         fig.add_annotation(
             x=0.5,
             y=-0.35, # Moved further down to avoid overlap
             xref="paper",
             yref="paper",
-            text=f"System: {self.system} | Metric: {self.metric.name()} | Generated: {timestamp}",
+            text=f"System: {self.system} | Metric: {self.metric.name()} | Generated: {self.timestamp}",
             showarrow=False,
             font=dict(size=11, color="#6b7280")
         )

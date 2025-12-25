@@ -14,35 +14,49 @@ METRICS=${METRICS:-"binary_size memory_usage"}
 # Ensure directories exist
 mkdir -p "$DOCS_DIR"
 
-# Get the last commit time of flake.lock in UTC
-# This ensures the report key is based on dependency state, not build time.
-TIMESTAMP=$(TZ=UTC git log -1 --date=format-local:%Y-%m-%dT%H:%M:%SZ --format=%ad -- flake.lock 2>/dev/null)
+# Get the lastModified timestamp from the nixpkgs node in flake.lock
+# This ensures the report key is based on the nixpkgs version, which is the root of the dependency tree.
+if [ -f "flake.lock" ]; then
+    LAST_MODIFIED=$(jq -r '.nodes.nixpkgs.locked.lastModified' flake.lock 2>/dev/null)
+    if [ -n "$LAST_MODIFIED" ] && [ "$LAST_MODIFIED" != "null" ]; then
+        # Convert Unix timestamp to ISO 8601 UTC
+        if date --version >/dev/null 2>&1; then
+            # GNU date
+            TIMESTAMP=$(date -u -d "@$LAST_MODIFIED" +"%Y-%m-%dT%H:%M:%SZ")
+        else
+            # BSD/macOS date
+            TIMESTAMP=$(date -u -r "$LAST_MODIFIED" +"%Y-%m-%dT%H:%M:%SZ")
+        fi
+    fi
+fi
 
 if [ -z "$TIMESTAMP" ]; then
     TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    echo "Warning: Could not get flake.lock commit time, falling back to current time: $TIMESTAMP"
+    echo "Warning: Could not get nixpkgs lastModified from flake.lock, using current time: $TIMESTAMP"
 else
-    echo "Using timestamp from flake.lock: $TIMESTAMP"
+    echo "Using timestamp from nixpkgs lastModified: $TIMESTAMP"
 fi
 
-# # Part 1: Process PNG Reports
-# for arch in $ARCHS; do
-#     ARTIFACT_DIR="${ARTIFACT_PREFIX}-$arch"
-#     CURRENT_REPORT_DIR="${REPORT_DIR}/$arch"
+# Part 1: Process PNG Reports
+# We only keep the 'latest' version to keep the repo size small.
+# Historical data is preserved in the JSON reports.
+for arch in $ARCHS; do
+    ARTIFACT_DIR="${ARTIFACT_PREFIX}-$arch"
+    CURRENT_REPORT_DIR="${REPORT_DIR}/$arch"
     
-#     # Create report dir if it doesn't exist
-#     mkdir -p "$CURRENT_REPORT_DIR/"
+    # Create report dir if it doesn't exist
+    mkdir -p "$CURRENT_REPORT_DIR/"
 
-#     for metric in $METRICS; do
-#         if [ -f "$ARTIFACT_DIR/$metric.png" ]; then
-#             cp "$ARTIFACT_DIR/$metric.png" "$CURRENT_REPORT_DIR/${metric}_$TIMESTAMP.png"
-#             cp "$ARTIFACT_DIR/$metric.png" "$CURRENT_REPORT_DIR/${metric}_latest.png"
-#             echo "Report saved as $CURRENT_REPORT_DIR/${metric}_latest.png"
-#         else
-#             echo "Warning: PNG report not found at $ARTIFACT_DIR/$metric.png (skipping)"
-#         fi
-#     done
-# done
+    for metric in $METRICS; do
+        if [ -f "$ARTIFACT_DIR/$metric.png" ]; then
+            # Overwrite the latest PNG for this arch/metric
+            cp "$ARTIFACT_DIR/$metric.png" "$CURRENT_REPORT_DIR/${metric}_latest.png"
+            echo "Report saved as $CURRENT_REPORT_DIR/${metric}_latest.png"
+        else
+            echo "Warning: PNG report not found at $ARTIFACT_DIR/$metric.png (skipping)"
+        fi
+    done
+done
 
 # Part 2: Process and combine JSON reports
 NEW_REPORT_JSON='{"binary_size": [], "memory_usage": []}'

@@ -4,16 +4,84 @@
     systems.url = "github:nix-systems/default";
 
     # Relative path requires Nix 2.26+. (See https://nix.dev/manual/nix/2.28/release-notes/rl-2.26)
-    asm.url = "path:./src/asm";
-    c.url = "path:./src/c";
-    cpp.url = "path:./src/cpp";
-    crystal.url = "path:./src/crystal";
-    go.url = "path:./src/go";
-    nim.url = "path:./src/nim";
-    odin.url = "path:./src/odin";
-    rust.url = "path:./src/rust";
-    v.url = "path:./src/v";
-    zig.url = "path:./src/zig";
+    #
+    # TODO: Since flake 'inputs' are static, this requires significant boilerplate for each sub-flake.
+    # We may need to use 'flake-parts' module to avoid this repetitive 'follows' and allow
+    # sub-flakes to inherit inputs from the root context.
+    asm = {
+      url = "path:./src/asm";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
+    c = {
+      url = "path:./src/c";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
+    cpp = {
+      url = "path:./src/cpp";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
+    crystal = {
+      url = "path:./src/crystal";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
+    go = {
+      url = "path:./src/go";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
+    nim = {
+      url = "path:./src/nim";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
+    odin = {
+      url = "path:./src/odin";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
+    rust = {
+      url = "path:./src/rust";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+        rust-overlay = {
+          url = "github:oxalica/rust-overlay";
+          inputs.nixpkgs.follows = "nixpkgs";
+        };
+      };
+    };
+    v = {
+      url = "path:./src/v";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
+    zig = {
+      url = "path:./src/zig";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        systems.follows = "systems";
+      };
+    };
   };
 
   outputs =
@@ -23,7 +91,6 @@
       systems,
       ...
     }:
-
     let
       # List of supported languages
       langs = [

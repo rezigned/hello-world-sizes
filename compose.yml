@@ -8,6 +8,9 @@ services:
     working_dir: /app
     entrypoint: nix
     # command: build .#packages.aarch64-linux.c-glibc
+    # command: flake update
+    # command: flake update --override-input nixpkgs https://github.com/NixOS/nixpkgs/archive/<commit>.tar.gz
+    # command: fmt flake.nix src/
     command: run
     environment:
       NIX_CONFIG: |

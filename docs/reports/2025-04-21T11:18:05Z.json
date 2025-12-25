@@ -1,0 +1,270 @@
+{
+  "binary_size": [
+    {
+      "language": "asm",
+      "value": 0.5,
+      "version": "2.16.03",
+      "arch": "arm64"
+    },
+    {
+      "language": "zig",
+      "value": 5.7421875,
+      "version": "0.14.0",
+      "arch": "arm64"
+    },
+    {
+      "language": "c (musl)",
+      "value": 5.90625,
+      "version": "0.14.0",
+      "arch": "arm64"
+    },
+    {
+      "language": "odin",
+      "value": 248.2109375,
+      "version": "dev-2025-04",
+      "arch": "arm64"
+    },
+    {
+      "language": "rust",
+      "value": 387.9375,
+      "version": "1.92.0",
+      "arch": "arm64"
+    },
+    {
+      "language": "c++ (musl)",
+      "value": 441.1328125,
+      "version": "0.14.0",
+      "arch": "arm64"
+    },
+    {
+      "language": "nim",
+      "value": 583.7109375,
+      "version": "2.2.2",
+      "arch": "arm64"
+    },
+    {
+      "language": "c (glibc)",
+      "value": 583.7109375,
+      "version": "14.2.1",
+      "arch": "arm64"
+    },
+    {
+      "language": "v",
+      "value": 914.234375,
+      "version": "0.4.8",
+      "arch": "arm64"
+    },
+    {
+      "language": "go",
+      "value": 1384.9921875,
+      "version": "1.24.2",
+      "arch": "arm64"
+    },
+    {
+      "language": "c++ (glibc)",
+      "value": 1608.0390625,
+      "version": "14.2.1",
+      "arch": "arm64"
+    },
+    {
+      "language": "c (musl)",
+      "value": 4.953125,
+      "version": "0.14.0",
+      "arch": "amd64"
+    },
+    {
+      "language": "zig",
+      "value": 5.3203125,
+      "version": "0.14.0",
+      "arch": "amd64"
+    },
+    {
+      "language": "asm",
+      "value": 8.2890625,
+      "version": "2.16.03",
+      "arch": "amd64"
+    },
+    {
+      "language": "odin",
+      "value": 140.5,
+      "version": "dev-2025-04",
+      "arch": "amd64"
+    },
+    {
+      "language": "rust",
+      "value": 376.5,
+      "version": "1.92.0",
+      "arch": "amd64"
+    },
+    {
+      "language": "c++ (musl)",
+      "value": 433.578125,
+      "version": "0.14.0",
+      "arch": "amd64"
+    },
+    {
+      "language": "c (glibc)",
+      "value": 676.09375,
+      "version": "14.2.1",
+      "arch": "amd64"
+    },
+    {
+      "language": "nim",
+      "value": 688.09375,
+      "version": "2.2.2",
+      "arch": "amd64"
+    },
+    {
+      "language": "v",
+      "value": 1050.640625,
+      "version": "0.4.8",
+      "arch": "amd64"
+    },
+    {
+      "language": "go",
+      "value": 1409.0234375,
+      "version": "1.24.2",
+      "arch": "amd64"
+    },
+    {
+      "language": "c++ (glibc)",
+      "value": 1776.4140625,
+      "version": "14.2.1",
+      "arch": "amd64"
+    }
+  ],
+  "memory_usage": [
+    {
+      "language": "rust",
+      "value": 272.0,
+      "version": "1.92.0",
+      "arch": "arm64"
+    },
+    {
+      "language": "zig",
+      "value": 272.0,
+      "version": "0.14.0",
+      "arch": "arm64"
+    },
+    {
+      "language": "odin",
+      "value": 272.0,
+      "version": "dev-2025-04",
+      "arch": "arm64"
+    },
+    {
+      "language": "asm",
+      "value": 272.0,
+      "version": "2.16.03",
+      "arch": "arm64"
+    },
+    {
+      "language": "c (musl)",
+      "value": 272.0,
+      "version": "0.14.0",
+      "arch": "arm64"
+    },
+    {
+      "language": "c++ (musl)",
+      "value": 304.0,
+      "version": "0.14.0",
+      "arch": "arm64"
+    },
+    {
+      "language": "nim",
+      "value": 524.0,
+      "version": "2.2.2",
+      "arch": "arm64"
+    },
+    {
+      "language": "c (glibc)",
+      "value": 524.0,
+      "version": "14.2.1",
+      "arch": "arm64"
+    },
+    {
+      "language": "v",
+      "value": 984.0,
+      "version": "0.4.8",
+      "arch": "arm64"
+    },
+    {
+      "language": "c++ (glibc)",
+      "value": 1492.0,
+      "version": "14.2.1",
+      "arch": "arm64"
+    },
+    {
+      "language": "go",
+      "value": 1684.0,
+      "version": "1.24.2",
+      "arch": "arm64"
+    },
+    {
+      "language": "c (musl)",
+      "value": 264.0,
+      "version": "0.14.0",
+      "arch": "amd64"
+    },
+    {
+      "language": "asm",
+      "value": 264.0,
+      "version": "2.16.03",
+      "arch": "amd64"
+    },
+    {
+      "language": "odin",
+      "value": 264.0,
+      "version": "dev-2025-04",
+      "arch": "amd64"
+    },
+    {
+      "language": "rust",
+      "value": 264.0,
+      "version": "1.92.0",
+      "arch": "amd64"
+    },
+    {
+      "language": "zig",
+      "value": 264.0,
+      "version": "0.14.0",
+      "arch": "amd64"
+    },
+    {
+      "language": "c++ (musl)",
+      "value": 284.0,
+      "version": "0.14.0",
+      "arch": "amd64"
+    },
+    {
+      "language": "nim",
+      "value": 656.0,
+      "version": "2.2.2",
+      "arch": "amd64"
+    },
+    {
+      "language": "c (glibc)",
+      "value": 656.0,
+      "version": "14.2.1",
+      "arch": "amd64"
+    },
+    {
+      "language": "v",
+      "value": 1176.0,
+      "version": "0.4.8",
+      "arch": "amd64"
+    },
+    {
+      "language": "c++ (glibc)",
+      "value": 1640.0,
+      "version": "14.2.1",
+      "arch": "amd64"
+    },
+    {
+      "language": "go",
+      "value": 3584.0,
+      "version": "1.24.2",
+      "arch": "amd64"
+    }
+  ]
+}

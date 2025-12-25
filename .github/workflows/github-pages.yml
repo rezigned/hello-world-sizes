@@ -4,6 +4,7 @@ name: Deploy static content to Pages
 on:
   workflow_run:
     workflows: [Update Reports]
+    branches: [main]
     types:
       - completed
 

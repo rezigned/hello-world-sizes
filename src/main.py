@@ -1,11 +1,12 @@
 import os
 import sys
 import re
+import json
 import subprocess
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -115,18 +116,16 @@ class BinaryAnalyzer:
         self.timestamp = self._get_flake_lock_time()
 
     def _get_flake_lock_time(self) -> str:
-        """Get the last commit time of flake.lock in UTC (ISO format)."""
+        """Get the lastModified timestamp from nixpkgs in flake.lock (ISO format)."""
         try:
-            # TZ=UTC and %ad ensures we get UTC if supported by the shell/git config
-            cmd = ["git", "log", "-1", "--date=format-local:%Y-%m-%dT%H:%M:%SZ", "--format=%ad", "flake.lock"]
-            env = os.environ.copy()
-            env["TZ"] = "UTC"
-            result = subprocess.run(cmd, capture_output=True, text=True, env=env)
-            if result.returncode == 0 and result.stdout.strip():
-                return result.stdout.strip()
+            with open("flake.lock", "r") as f:
+                data = json.load(f)
+                # We use the main 'nixpkgs' node as the reference
+                last_modified = data["nodes"]["nixpkgs"]["locked"]["lastModified"]
+                return datetime.fromtimestamp(last_modified, timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         except Exception:
             pass
-        return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     def analyze_binaries(self) -> dict:
         """Analyze programs using the selected metric and return results with timestamps."""
@@ -309,7 +308,6 @@ class BinaryAnalyzer:
         records = df.to_dict(orient='records')
         
         with open(json_path, 'w') as f:
-            import json
             json.dump(records, f, indent=4)
 
     def print_summary(self, results: dict):

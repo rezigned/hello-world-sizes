@@ -61,7 +61,9 @@ jobs:
         run: nix run
 
       - name: Upload all reports as a single artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: |
+          (github.event_name == 'push' && github.ref == 'refs/heads/main')
+          || (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'main')
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_PREFIX }}-${{ matrix.os.arch }}
